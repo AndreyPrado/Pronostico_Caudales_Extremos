@@ -183,7 +183,22 @@ class RedesNeuronales(Modelo, Grafico):
         
     #Método para entrenar el modelo
     def entrenar(self, epochs=1000, verbose=0, validation_split=0.2):
+        '''Entrena el modelo de red neuronal.
 
+            Parámetros
+            ----------
+                epochs : int
+                    Número máximo de épocas de entrenamiento.
+                verbose : int
+                    Nivel de verbosidad durante el entrenamiento.
+                validation_split : float
+                    Porcentaje de datos para validación.
+                
+            Returns
+            -------
+                self.__historial : tf.keras.History
+                    Objeto con historial de entrenamiento.
+        '''
         callbacks = [
         EarlyStopping(monitor='val_loss', patience=100, restore_best_weights=True),
         ModelCheckpoint('best_model.h5', monitor='val_loss', save_best_only=True),
@@ -295,7 +310,19 @@ class RedesNeuronales(Modelo, Grafico):
     
     #Método para graficar resultados
     def graficar_resultados(self, nombre_fecha):
+        '''Genera gráfico comparando valores reales y predicciones.
 
+            Parámetros
+            ----------
+                nombre_fecha : str
+                    Nombre de la columna de la fecha
+                
+            Retorna
+            -------
+            
+               self.__grafico : matplotlib.figure
+                   Figura con la comparación.
+        '''
         fig, ax = plt.subplots(figsize=(12, 6))
         ax.plot(self._Y_test.values, label='Valores reales', linewidth=2)
         ax.plot(self.__predicciones, label='Predicciones', linewidth=2, linestyle='--')
@@ -347,11 +374,27 @@ class RedesNeuronales(Modelo, Grafico):
         return self.__modelo
     
     def importancia_shap(self):
+        '''Calcula y muestra importancia de características con SHAP.
+            
+            Parámetros
+            ----------
+            
+            Retorna
+            -------
+        '''
         explainer = shap.Explainer(self.__modelo, self.__x_train_escalado)
         shap_values = explainer(self.__x_train_escalado)
         shap.summary_plot(shap_values, features = self.__x_train_escalado, feature_names = self.__variables_x)
         
     def importancia_permu(self):
+        '''Calcula y muestra importancia por permutación.
+        
+            Parámetros
+            ----------
+            
+            Retorna
+            -------
+        '''
         model = KerasRegressor(build_fn = lambda: self.__modelo, epochs=0, verbose=0)
         model.fit(self.__x_train_escalado, self.__y_train_escalado)
         resultados = permutation_importance(model, self.__x_train_escalado, self.__y_train_escalado, n_repeats=10, random_state=42 )
@@ -362,6 +405,14 @@ class RedesNeuronales(Modelo, Grafico):
         plt.show()
         
     def importancia_grad(self):
+        ''' Calcula y muestra la importancia de las variables por método del gradiente
+        
+            Parámetros
+            ----------
+            
+            Retorna
+            -------
+        '''
         x_tensor = tf.convert_to_tensor(self.__x_train_escalado, dtype=tf.float32)
         with tf.GradientTape() as tape:
             tape.watch(x_tensor)

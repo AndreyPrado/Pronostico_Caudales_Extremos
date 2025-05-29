@@ -84,12 +84,14 @@ class BaseDatos():
             Retorna
             -------
             
-            '''
-        self._datos = pd.DataFrame(new_str)
+        '''
+        self._url = new_str
+        
             
     #Método String
     def __str__(self):
         ''' Da una descripción de la base de datos a utilizar
+        
         Parámetros
         ----------
         
@@ -102,6 +104,7 @@ class BaseDatos():
     #Método Para Descargar Pandas.DataFrame en CSV
     def descargar_excel(self, nombre: str):
         ''' Método para descargar la base de datos en formato csv
+        
         Parámetros
         ----------
         Nombre : str
@@ -109,9 +112,10 @@ class BaseDatos():
         
         Retorna
         -------
-        
+        str
+            String confirmando la descarga del excel    
         '''
-        cadena = nombre+".xlsx"
+        cadena = f"{nombre}.xlsx"
         self._datos.to_excel(cadena)
         return f"Archivo {nombre}.xlsx descargado con éxito"
         

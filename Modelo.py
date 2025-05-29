@@ -54,38 +54,127 @@ class Modelo(Grafico):
         
     @property
     def X_train(self):
+        ''' Obtiene el conjunto X_train
+        
+            Parámetros
+            ----------
+            
+            Retorna
+            -------
+            
+            X_train : array
+                Conjunto X_train
+        '''
         return self._X_train
     
     @X_train.setter
     def X_train(self, value):
+        ''' Guarda un nuevo conjunto x_train
+        
+            Parámetros
+            ----------
+            
+            value : array
+                Nuevos datos de entrenamiento
+                
+            Retorna
+            -------
+            
+        '''
         self._X_train = value
     
     
     @property
     def X_test(self):
+        ''' Obtiene el conjunto x_test
+        
+            Parámetros
+            ----------
+            
+            Retorna
+            -------
+            
+            self._x_test : array
+                Conjunto x_test
+        '''
+            
         return self._X_test
     
     @X_test.setter
     def X_test(self, value):
+        ''' Guarda un nuevo conjunto de prueba
+    
+            Parámetros
+            ----------
+            value: array
+                Nuevos datos de prueba 
+            
+            Retorna
+            -------
+            
+        '''
         self._X_test = value
     
     
     @property
     def Y_train(self):
+        ''' Obtiene el conjunto de entrenamiento
+        
+            Parámetros
+            ----------
+    
+            Retorna
+            -------
+            array
+                Conjunto de entrenamiento
+        '''
         return self._Y_train
     
     @Y_train.setter
     def Y_train(self, value):
+        ''' Guarda un nuevo conjuntode entrenamiento
+    
+            Parámetros
+            ----------
+            value: array
+                Nuevo conjunto de entrenamiento
+            
+            Retorna
+            -------
+            
+        '''
         self._Y_train = value
     
     
     @property
     def Y_test(self):
+        ''' Obtiene el conjunto de prueba
+            
+            Parámetros
+            ----------
+            
+            Retorna
+            -------
+            array
+                Obtiene el conjunto de prueba
+        '''
         return self._Y_test
     
     @Y_test.setter
     def Y_test(self, value):
+        ''' Guarda un nuevo conjunto de prueba
+    
+            Parámetros
+            ----------
+            value: array
+                Nuevo conjunto de prueba
+            
+            Retorna
+            -------
+            
+        '''
         self._Y_test = value
+        
     #Método String
     def __str__(self):
         ''' Da una breve descripción de la clase
@@ -184,11 +273,43 @@ class Modelo(Grafico):
     
     #Método para usar fechas
     def fechas(self, nombre_col : str):
+        ''' Separa la variable de fecha como año y mes
         
+            Parámetros
+            ----------
+            
+            nombre_col : str
+                Nombre de la columna con la fecha
+                
+            Retorna
+            -------
+            
+        '''    
+    
         self._datos[nombre_col] = pd.to_datetime(self._datos[nombre_col])
         self._datos['ano'] = self._datos[nombre_col].dt.year
         self._datos['mes'] = self._datos[nombre_col].dt.month
         self._datos = self._datos.drop(columns = [nombre_col])
+        
+    def eliminar_vari(self, nombre_col : str):
+        ''' Método para eliminar una columna
+        
+            Parámetros
+            ----------
+            
+            nombre_col : str
+                Nombre de la columna que se desea eliminar
+                
+            Retorna
+            -------
+            
+            self.__datos : pd.DataFrame
+                Actualiza el set original de datos pero sin la variable escogida
+        '''
+        
+        self._datos = self._datos.drop(columns = nombre_col)
+        
+        return self._datos
         
         
         

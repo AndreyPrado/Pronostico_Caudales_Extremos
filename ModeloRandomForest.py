@@ -11,7 +11,24 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import TimeSeriesSplit
 
 class ModeloRandomForest(Modelo):
+        
     def __init__(self, url, target_column, col_ignore):
+        ''' Inicializa una instancia de ModeloRandomForest heredando de Modelo.
+
+            Parámetros
+            ----------
+            url : str
+                Ruta del archivo de datos a cargar
+            target_column : str
+                Nombre de la columna objetivo (variable dependiente)
+            col_ignore : list
+                Lista de columnas a ignorar en el modelo
+                
+            Retorna
+            -------
+            ModeloRandomForest
+                Instancia de la clase inicializada
+        '''
         super().__init__(url)
         self.__target_column = target_column
         self.__col_ignore = col_ignore
@@ -19,15 +36,48 @@ class ModeloRandomForest(Modelo):
         self.__best = None
 
     #Getters y Setters 
+    @property
     def modelo(self):
+        ''' Obtiene el modelo RandomForest actual
+
+            Parámetros
+            ----------
+            
+            Retorna
+            -------
+            RandomForestRegressor
+                Modelo de Random Forest almacenado
+        '''
         return self.__modelo
     
+    @modelo.setter
     def modelo(self, new):
+        ''' Establece un nuevo modelo RandomForest
+        
+            Parámetros
+            ----------
+            new : RandomForestRegressor
+                Nuevo modelo de Random Forest
+                
+            Retorna
+            -------
+            None
+        '''
         self.__modelo = new
         
-        
     def crear_y_ajustar_modelo(self):
-        
+        ''' Crea y ajusta un modelo RandomForest con búsqueda de hiperparámetros.
+
+            Realiza una búsqueda en cuadrícula para encontrar los mejores hiperparámetros
+            usando validación cruzada de series temporales.
+            
+            Parámetros
+            ----------
+            
+            Retorna
+            -------
+            
+        '''
         self.__model = RandomForestRegressor(random_state = 42)
         
         self._X_train, self._X_test, self._Y_train, self._Y_test = self.cargar_datos(
@@ -55,6 +105,18 @@ class ModeloRandomForest(Modelo):
         
 
     def evaluar_modelo(self):
+        ''' Evalúa el modelo RandomForest con múltiples métricas.
+        
+            Calcula R² para train/test, validación cruzada, MAE, MSE, RMSE,
+            MAPE y NSE (Nash-Sutcliffe Efficiency).
+            
+            Parámetros
+            ----------
+            
+            Retorna
+            -------
+            
+        '''
         # Puntaje R2
         r2_train = self.__model.score(self._X_train, self._Y_train)
         r2_test = self.__model.score(self._X_test, self._Y_test)
@@ -91,6 +153,16 @@ class ModeloRandomForest(Modelo):
         """)
         
     def graficar_predicciones(self):
+        ''' Genera un gráfico comparando valores reales vs predicciones.
+
+            Parámetros
+            ----------
+            
+            Retorna
+            -------
+            matplotlib.figure.Figure
+                Figura con el gráfico de comparación
+        '''
         
         fig, ax = plt.subplots(figsize=(12, 6))
         ax.plot(self._Y_test.values, label='Valores reales', linewidth=2)
@@ -107,7 +179,16 @@ class ModeloRandomForest(Modelo):
         return self.__grafico
 
     def visualizar_resultados(self):
+        ''' Genera un gráfico de dispersión de valores reales vs predicciones.
 
+            Parámetros
+            ----------
+            
+            Retorna
+            -------
+            matplotlib.figure.Figure
+                Figura con el gráfico de dispersión
+        '''
         fig, ax = plt.subplots(figsize=(10, 6))
         sns.scatterplot(x=self._Y_test.values.ravel(), y=self.__y_pred.ravel(), alpha=0.6, ax=ax)
         ax.plot([self._Y_test.min(), self._Y_test.max()], [self._Y_test.min(), self._Y_test.max()], 'r--')
@@ -122,6 +203,18 @@ class ModeloRandomForest(Modelo):
     
         
     def importancia_feature(self, top_n = 10):
+        ''' Calcula y visualiza la importancia de las variables según el modelo.
+
+            Parámetros
+            ----------
+            top_n : int, opcional
+                Número de variables más importantes a mostrar (por defecto 10)
+                
+            Retorna
+            -------
+            matplotlib.figure.Figure
+                Figura con el gráfico de importancia de variables
+        '''
         importances = self.__model.feature_importances_
         feature_names = self._X_train.columns
         df_impor = pd.DataFrame({
@@ -141,6 +234,20 @@ class ModeloRandomForest(Modelo):
         return self.__grafico
             
     def importancia_permutacion(self, nombre : str, top_n = 10 ):
+        ''' Calcula y visualiza la importancia por permutación de las variables.
+        
+            Parámetros
+            ----------
+            nombre : str
+                Tipo de importancia a visualizar ("media" o "sd")
+            top_n : int, opcional
+                Número de variables más importantes a mostrar (por defecto 10)
+                
+            Retorna
+            -------
+            matplotlib.figure.Figure
+                Figura con el gráfico de importancia por permutación
+        '''
         feature_names = self._X_train.columns
         resultados = permutation_importance(self.__model, self._X_test, self._Y_test, n_repeats=10, random_state=42)
         df_permu = pd.DataFrame({

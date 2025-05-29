@@ -3,7 +3,6 @@ import seaborn as sns
 from BaseDatos import BaseDatos
 from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.seasonal import STL
-from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 
 class Grafico(BaseDatos):
     
@@ -69,7 +68,9 @@ class Grafico(BaseDatos):
             Parámetros
             ----------
             col : str o list
-                Columna(s) a graficar. Si es None usa todas las numéricas.
+                Columna(s) a graficar.
+            nombre_fecha : str
+                Nombre de la columna con fechas
             
             Retorna
             -------
@@ -114,7 +115,7 @@ class Grafico(BaseDatos):
         
         self.__grafico = fig
         
-        return self.__grafico
+        return fig
     
     #Método para hacer un heatmap
     def heatmap(self):
@@ -241,4 +242,4 @@ class Grafico(BaseDatos):
             descomposicion.plot()
             self.__grafico = fig
             
-        return descomposicion
+        return fig
