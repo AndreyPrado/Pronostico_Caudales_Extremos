@@ -1,0 +1,548 @@
+---
+title: "Informe de los modelos de aplicados en la cuenca: Brujo - Guardia"
+author: "Jose Andrey Prado Rojas"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    toc-title: "Contenidos"
+    css: styles.css
+    theme: cosmo
+  pdf:
+    toc: true
+    toc-depth: 3
+    toc-title: "Contenidos"
+    latex-engine: xelatex 
+    number-sections: true   
+bibliography: referencias.bib
+csl: apa.csl
+---
+
+# Base de datos
+
+Entre las variables seleccionadas para el análisis predictivo del caudal mínimo tanto de Brujo como de Guardia se usaron varibales como caudal mínimo, temperatura, precipitación, humedad, humedad del suelo, entre otras. Las variables fueron descargadas usando las coordenadas exactas de la cuenca según los boletines del ICE y en la base satelital NASA Power se descargaron las siguientes variables
+
+<div style="column-count: 2;">
+
+- Humedad relativa a 2 metros de altura en $\%$
+- Velocidad del viento a 2 metros de altura en $m/s$
+- Dirección de la velocidad del viento a 2 metros de altura en grados $\degree$
+- Suma de la precipitación mensual en $mm/dia$
+- Humedad del perfil del suelo 
+- Humedad superficial del suelo
+- Temperatura a 2 metros de altura en grados Celsius
+- Temperatura máxima a 2 metros de altura en grados Celsius
+- Temperatura mínima a 2 metros de altura en grados Celsius
+
+</div>
+
+Para ambas cuencas se buscó cual era la primera fila completamente llena, esto debido a que los rezagos para las variables fuera de caudal mínimo e índice de niño iban a presentar una serie de valores nulos, también se buscó cual era la última fila cuyos valores fueran llenos, esto debido a que los datos del caudal mínimo terminan en aproximadamente 1993 mientras que las variables descargadas por parte de NASA Power llegan hasta 2025
+
+*Nota:* En las siguientes secciones solo se presentarán los resultados de los módulos y scripts programados con una pequeña explicación ya sea del resultado o bien de la ubicación del código en las carpetas.
+
+```{r warning=FALSE, message=FALSE}
+# Chunk necesario para la importación del código de Python en qmd
+library(reticulate)
+use_python("C:/Users/andre/anaconda3/envs/Proyectos/python.exe", required = TRUE)
+```
+
+# Análisis de Datos
+
+En esta sección se graficarán las series de tiempo del caudal mínimo para ambas cuencas, así como un análisis de estacionalidad y correlaciones.
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+#| output: false
+import sys
+import os
+import importlib
+
+sys.path.append(os.path.abspath('cod/py'))
+
+import AnalisisDatos
+import Grafico
+
+importlib.reload(AnalisisDatos)
+importlib.reload(Grafico)
+
+from AnalisisDatos import AnalisisDatos
+from Grafico import Grafico
+```
+
+Para el análisis de estadísticas básicas y los outliers se usan los métodos de \textit(AnalisisDatos) y para la visualización de la serie de tiempo, estacionalidad y la correlación se utilizarán los métodos de \textit(Grafico)
+
+### Brujo
+
+```{python}
+datos_brujo = AnalisisDatos('data/Brujo/BaseCompletaBrujo.csv')
+grafico_brujo = Grafico('data/Brujo/BaseCompletaBrujo.csv')
+```
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+import pandas as pd
+resumen = datos_brujo.est_basicas()
+resumen = pd.DataFrame(resumen)
+resumen = resumen.style.set_caption("Resumen con estadísticas básicas").format(precision=2).background_gradient(cmap="Blues")
+resumen
+```
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+outliers = datos_brujo.detectar_outliers()
+outliers = pd.DataFrame(outliers)
+outliers = outliers.style.set_caption("Cantidad de Outliers").format(precision=2).background_gradient(cmap="Blues")
+outliers
+```
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+grafico_brujo.descomposicion('STL', 'caudal_minimo')
+```
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+grafico_brujo.linea('fecha','caudal_minimo')
+```
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+grafico_brujo.dist('caudal_minimo')
+```
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+grafico_brujo.heatmap()
+```
+
+### Guardia
+
+```{python}
+datos_guardia = AnalisisDatos('data/Guardia/BaseCompletaGuardia.csv')
+grafico_guardia = Grafico('data/Guardia/BaseCompletaGuardia.csv')
+```
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+import pandas as pd
+resumen = datos_guardia.est_basicas()
+resumen = pd.DataFrame(resumen)
+resumen = resumen.style.set_caption("Resumen con estadísticas básicas").format(precision=2).background_gradient(cmap="Blues")
+resumen
+```
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+outliers = datos_guardia.detectar_outliers()
+outliers = pd.DataFrame(outliers)
+outliers = outliers.style.set_caption("Cantidad de Outliers").format(precision=2).background_gradient(cmap="Blues")
+outliers
+```
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+grafico_guardia.descomposicion('STL', 'caudal_minimo')
+```
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+grafico_guardia.linea('fecha','caudal_minimo')
+```
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+grafico_guardia.dist('caudal_minimo')
+```
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+grafico_guardia.heatmap()
+```
+
+# Modelos
+
+Para el análisis predictivo del caudal mínimo para ambas cuencas se programaron 3 mdoelos, Random Forest, Redes Neuronales y XGBoost, a todos ellos se les aplicó un método de Validación Cruzada y para el caso de XGBoost y RandomForest se aplicó la optimización de los hiperparámetros, en el caso de Redes Neuronales no se aplicaron por su duración a la hora de compilar.
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+
+
+import ModeloRandomForest
+import RedesNeuronales
+
+importlib.reload(ModeloRandomForest)
+importlib.reload(RedesNeuronales)
+
+from ModeloRandomForest import ModeloRandomForest
+from RedesNeuronales import RedesNeuronales
+
+rf_brujo = ModeloRandomForest('data/Brujo/BaseCompletaBrujo.csv', 'caudal_minimo', 'caudal_minimo')
+rf_guardia = ModeloRandomForest('data/Guardia/BaseCompletaGuardia.csv', 'caudal_minimo', 'caudal_minimo')
+rn_brujo = RedesNeuronales('data/Brujo/BaseCompletaBrujo.csv')
+rn_guardia = RedesNeuronales('data/Guardia/BaseCompletaGuardia.csv')
+```
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: true
+
+source('cod/r/XGBoost.R')
+```
+
+## Modelo Random Forest
+
+### Brujo
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+
+rf_brujo.fechas_num('fecha')
+rf_brujo.crear_y_ajustar_modelo()
+rf_brujo.evaluar_modelo()
+```
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+
+rf_brujo.graficar_predicciones()
+```
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+
+rf_brujo.visualizar_resultados()
+```
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+
+rf_brujo.importancia_permutacion('media', 100)
+```
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+
+rf_brujo.importancia_feature(100)
+```
+
+### Guardia
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+
+rf_guardia.fechas_num('fecha')
+rf_guardia.crear_y_ajustar_modelo()
+rf_guardia.evaluar_modelo()
+```
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+
+rf_guardia.graficar_predicciones()
+```
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+
+rf_guardia.graficar_predicciones()
+```
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+
+rf_guardia.importancia_permutacion('media', 100)
+```
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+
+rf_guardia.importancia_feature(100)
+```
+
+## Modelo Redes Neuronales
+
+### Brujo
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+#| output: false
+
+rn_brujo.fechas_num('fecha')
+X_train, X_test, y_train, y_test = rn_brujo.preprocesar_datos(['fecha', 'humedad_lag_1', 'humedad_lag_2',
+       'humedad_lag_3', 'humedad_lag_4', 'humedad_lag_5', 'humedad_lag_6',
+       'temp_lag_1', 'temp_lag_2', 'temp_lag_3', 'temp_lag_4', 'temp_lag_5',
+       'temp_lag_6', 'temp_max_lag_1', 'temp_max_lag_2', 'temp_max_lag_3',
+       'temp_max_lag_4', 'temp_max_lag_5', 'temp_max_lag_6', 'temp_min_lag_1',
+       'temp_min_lag_2', 'temp_min_lag_3', 'temp_min_lag_4', 'temp_min_lag_5',
+       'temp_min_lag_6', 'prep_lag_1', 'prep_lag_2', 'prep_lag_3',
+       'prep_lag_4', 'prep_lag_5', 'prep_lag_6', 'soil_perfil_lag_1',
+       'soil_perfil_lag_2', 'soil_perfil_lag_3', 'soil_perfil_lag_4',
+       'soil_perfil_lag_5', 'soil_perfil_lag_6', 'soil_superf_lag_1',
+       'soil_superf_lag_2', 'soil_superf_lag_3', 'soil_superf_lag_4',
+       'soil_superf_lag_5', 'soil_superf_lag_6', 'dir_viento_lag_1',
+       'dir_viento_lag_2', 'dir_viento_lag_3', 'dir_viento_lag_4',
+       'dir_viento_lag_5', 'dir_viento_lag_6', 'vel_viento_lag_1',
+       'vel_viento_lag_2', 'vel_viento_lag_3', 'vel_viento_lag_4',
+       'vel_viento_lag_5', 'vel_viento_lag_6', 'nino_lag_1', 'nino_lag_2',
+       'nino_lag_3', 'nino_lag_4', 'nino_lag_5', 'nino_lag_6',
+       'caudal_minimo_lag_1', 'caudal_minimo_lag_2', 'caudal_minimo_lag_3',
+       'caudal_minimo_lag_4', 'caudal_minimo_lag_5', 'caudal_minimo_lag_6',
+       'caudal_minimo_lag_12'], 'caudal_minimo', 30, 0.2)
+
+rn_brujo.validacion_cruzada(n_splits=5, epochs=250, batch_size=32)
+rn_brujo.entrenar(epochs=150, batch_size=32, verbose=1, validation_split=0.2)
+```
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+
+rn_brujo.predecir()
+rn_brujo.evaluar_modelo()
+```
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+
+rn_brujo.graficar_perdidas()
+```
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+
+rn_brujo.graficar_resultados('fecha')
+```
+
+### Guardia
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+#| output: false
+
+rn_guardia.fechas_num('fecha')
+X_train, X_test, y_train, y_test = rn_guardia.preprocesar_datos(['fecha', 'humedad_lag_1', 'humedad_lag_2',
+       'humedad_lag_3', 'humedad_lag_4', 'humedad_lag_5', 'humedad_lag_6',
+       'temp_lag_1', 'temp_lag_2', 'temp_lag_3', 'temp_lag_4', 'temp_lag_5',
+       'temp_lag_6', 'temp_max_lag_1', 'temp_max_lag_2', 'temp_max_lag_3',
+       'temp_max_lag_4', 'temp_max_lag_5', 'temp_max_lag_6', 'temp_min_lag_1',
+       'temp_min_lag_2', 'temp_min_lag_3', 'temp_min_lag_4', 'temp_min_lag_5',
+       'temp_min_lag_6', 'prep_lag_1', 'prep_lag_2', 'prep_lag_3',
+       'prep_lag_4', 'prep_lag_5', 'prep_lag_6', 'soil_perfil_lag_1',
+       'soil_perfil_lag_2', 'soil_perfil_lag_3', 'soil_perfil_lag_4',
+       'soil_perfil_lag_5', 'soil_perfil_lag_6', 'soil_superf_lag_1',
+       'soil_superf_lag_2', 'soil_superf_lag_3', 'soil_superf_lag_4',
+       'soil_superf_lag_5', 'soil_superf_lag_6', 'dir_viento_lag_1',
+       'dir_viento_lag_2', 'dir_viento_lag_3', 'dir_viento_lag_4',
+       'dir_viento_lag_5', 'dir_viento_lag_6', 'vel_viento_lag_1',
+       'vel_viento_lag_2', 'vel_viento_lag_3', 'vel_viento_lag_4',
+       'vel_viento_lag_5', 'vel_viento_lag_6', 'nino_lag_1', 'nino_lag_2',
+       'nino_lag_3', 'nino_lag_4', 'nino_lag_5', 'nino_lag_6',
+       'caudal_minimo_lag_1', 'caudal_minimo_lag_2', 'caudal_minimo_lag_3',
+       'caudal_minimo_lag_4', 'caudal_minimo_lag_5', 'caudal_minimo_lag_6',
+       'caudal_minimo_lag_12'], 'caudal_minimo', 30, 0.2)
+
+rn_guardia.validacion_cruzada(n_splits=5, epochs=250, batch_size=32)
+rn_guardia.entrenar(epochs=150, batch_size=32, verbose=1, validation_split=0.2)
+```
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+
+rn_guardia.predecir()
+rn_guardia.evaluar_modelo()
+```
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+
+rn_guardia.graficar_perdidas()
+```
+
+```{python}
+#| warning: false
+#| message: false
+#| echo: true
+
+rn_guardia.graficar_resultados('fecha')
+```
+
+## Modelo XGBoost
+
+### Brujo
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: true
+
+xg_brujo <- read.csv('data/Brujo/BaseCompletaBrujo.csv')
+xg_brujo$fecha <- as.Date(xg_brujo$fecha)
+lista_brujo <- xg_particion_datos(xg_brujo, "caudal_minimo", 0.70)
+
+grid <- expand.grid(
+  nrounds = c(100, 300, 500),
+  max_depth = c(4, 6, 8),
+  eta = c(0.005, 0.01),
+  gamma = c(0, 1, 5),
+  colsample_bytree = c(0.5, 0.7),
+  min_child_weight = c(5, 10),
+  subsample = c(0.6, 0.8)
+)
+
+modelo_opti_brujo <- xg_optimizar_modelo(lista_brujo, grid, cv = 6)
+
+```
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: true
+
+xg_grafico_importancia(modelo_opti_brujo, 15, opti = TRUE)
+```
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: true
+
+xg_grafico_resultados(modelo_opti_brujo, lista_brujo, opti = TRUE)
+```
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: true
+
+xg_serie_tiempo(modelo = modelo_opti_brujo, lista_datos = lista_brujo, nombre_fecha = "fecha", opti = TRUE)
+```
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: true
+
+xg_grafico_residuos(modelo_opti_brujo, lista_brujo, opti = TRUE)
+```
+
+### Guardia
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: true
+
+xg_guardia <- read.csv('data/Guardia/BaseCompletaGuardia.csv')
+xg_guardia$fecha <- as.Date(xg_guardia$fecha)
+lista_guardia <- xg_particion_datos(xg_guardia, "caudal_minimo", 0.70)
+
+grid <- expand.grid(
+  nrounds = c(100, 300, 500),
+  max_depth = c(4, 6, 8),
+  eta = c(0.005, 0.01),
+  gamma = c(0, 1, 5),
+  colsample_bytree = c(0.5, 0.7),
+  min_child_weight = c(5, 10),
+  subsample = c(0.6, 0.8)
+)
+
+modelo_opti_guardia <- xg_optimizar_modelo(lista_guardia, grid, cv = 6)
+
+```
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: true
+
+xg_grafico_importancia(modelo_opti_guardia, 15, opti = TRUE)
+```
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: true
+
+xg_grafico_resultados(modelo_opti_guardia, lista_guardia, opti = TRUE)
+```
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: true
+
+xg_serie_tiempo(modelo = modelo_opti_guardia, lista_datos = lista_guardia, nombre_fecha = "fecha", opti = TRUE)
+```
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: true
+
+xg_grafico_residuos(modelo_opti_guardia, lista_guardia, opti = TRUE)
+```
+
+# Notas
+
+Estuve viendo otros modelos como LightGBM y ExtraTrees que tal vez se podrían programar para ver sus resultados, intentaré para inicios del semestre haber cambiado el código del modelo de Redes Neuronales con otro framework, por ejemplo PyTorch y ver si se puede mejorar algo pues los resultados son bastante malos.

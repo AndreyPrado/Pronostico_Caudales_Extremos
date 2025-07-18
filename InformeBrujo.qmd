@@ -1,0 +1,16 @@
+---
+title: "Informe de Modelos en Brujo"
+author: Andrey Prado
+format: html
+---
+
+
+```{r paquetes}
+#| code-fold: true
+#| message: false
+#| warning: false
+#| echo: false
+
+source("XGBoost.R")
+
+```
