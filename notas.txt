@@ -1,9 +1,0 @@
-Hacer informe por cada cuenca
-
-- Limpieza de la misma
-- Estadísticas Generales * Llamar clases desde qmd
-- Análisis de datos * Llamar clases desde qmd
-- Modelo Random Forest * Usar nueva base a ver que tal
-- Modelo Redes Neuronales * Arreglar modelo
-- Modelo LGBM * Escribir en Script
-- Modelo XGBoost * Llamar funciones
