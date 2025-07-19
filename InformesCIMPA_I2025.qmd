@@ -8,6 +8,7 @@ format:
     toc-title: "Contenidos"
     css: styles.css
     theme: cosmo
+    embeded-resources: true
   pdf:
     toc: true
     toc-depth: 3
@@ -24,10 +25,10 @@ Entre las variables seleccionadas para el análisis predictivo del caudal mínim
 
 <div style="column-count: 2;">
 
-- Humedad relativa a 2 metros de altura en $\%$
-- Velocidad del viento a 2 metros de altura en $m/s$
-- Dirección de la velocidad del viento a 2 metros de altura en grados $\degree$
-- Suma de la precipitación mensual en $mm/dia$
+- Humedad relativa a 2 metros de altura en \(\%\)
+- Velocidad del viento a 2 metros de altura en \(m/s\)
+- Dirección de la velocidad del viento a 2 metros de altura en grados \(^\circ\)
+- Suma de la precipitación mensual en \(mm/\text{día}\)
 - Humedad del perfil del suelo 
 - Humedad superficial del suelo
 - Temperatura a 2 metros de altura en grados Celsius
@@ -546,3 +547,7 @@ xg_grafico_residuos(modelo_opti_guardia, lista_guardia, opti = TRUE)
 # Notas
 
 Estuve viendo otros modelos como LightGBM y ExtraTrees que tal vez se podrían programar para ver sus resultados, intentaré para inicios del semestre haber cambiado el código del modelo de Redes Neuronales con otro framework, por ejemplo PyTorch y ver si se puede mejorar algo pues los resultados son bastante malos.
+
+# Anexos
+
+Link del Repositorio : [https://github.com/AndreyPrado/Pronostico_Caudales_Extremos](https://github.com/AndreyPrado/Pronostico_Caudales_Extremos)
